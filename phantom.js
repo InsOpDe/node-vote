@@ -6,6 +6,9 @@ var viewports = require('./viewports.js');
 var fs = require('fs');
 var ualist = fs.readFileSync('ualist.txt').toString().split("\n");
 
+let second = 1000;
+let minute = 60 * second;
+
 var successful = 0;
 var errors = 0;
 async function sendReq (list){
@@ -14,7 +17,7 @@ async function sendReq (list){
     const browser = await puppeteer.launch({
         args: [
             // '--proxy-server=185.93.3.123:8080', // Or whatever the address is
-            '--proxy-server=' + proxy, // Or whatever the address is
+            // '--proxy-server=' + proxy, // Or whatever the address is
         ]
     });
     try {
@@ -23,17 +26,23 @@ async function sendReq (list){
             userAgent: getRandomFromList(ualist),
             viewport: getRandomFromList(viewports.list)
         })
-        await page.goto('http://localhost:8001');
+        // await page.goto('http://localhost:8001');
+        await page.goto('https://youtu.be/yZsm1yjpAvg?autoplay=1');
         await page.screenshot({
             path: './screens/example-' + Date.now() + '.png'
         });
+        await timeout(500);
+
+        await page.bringToFront();
+        page.focus(".html5-main-video");
+
+        await timeout(500);
+
+        page.evaluate(`document.querySelector(".html5-main-video").click()`);
+        let duration = await page.evaluate(`document.querySelector(".html5-main-video").duration`);
 
 
-        // const votebutton = await page.$(".candidate-tile__vote-icon");
-        // const res = await votebutton.evaluate( votebutton => votebutton.click() );
-        page.click(".candidate-tile__vote-icon");
-
-        await timeout(1000);
+        await timeout(Math.floor(duration) + 10* second);
 
         await page.screenshot({
             path: './screens/example_clicked-' + Date.now() + '.png'
@@ -48,12 +57,12 @@ async function sendReq (list){
 
     await browser.close();
 
-    if(list.length)
-        sendReq(list);
-    else {
+    // if(list.length)
+    //     sendReq(list);
+    // else {
         console.log("FINISHED..");
         // sendReq(shuffle(proxylist));
-    }
+    // }
 
 
 }
